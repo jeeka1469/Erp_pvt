@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import sys
 import time
+import os
 
 # Global set to track expired attendances
 expired_attendances = set()
@@ -311,31 +312,26 @@ async def check_and_mark_attendance(sid, email, password, student_id):
             await asyncio.sleep(1)  
 
 async def main():
-
     student_id = "668c1a15b26adcc7e79eb354"
 
-    email = input("Enter your Bennett email (or press Enter to use E23CSEU1838@bennett.edu.in): ").strip()
-    if not email:
-        email = "E23CSEU1838@bennett.edu.in"
-    
-    password = input("Enter your password: ").strip()
-    if not password:
-        password = "JeGjnF2f"
+    # Get credentials from environment variables
+    email = os.getenv("BENNETT_EMAIL", "E23CSEU1838@bennett.edu.in")
+    password = os.getenv("BENNETT_PASSWORD", "JeGjnF2f")
 
     print(f"\nLogging in as: {email}")
     sid = await get_sid(email, password)
-    
+
     if not sid:
         print("[ERROR] Failed to login. Exiting.")
         return
-    
+
     print(f"Student ID: {student_id}")
     print("Session ID: " + sid[:10] + "..." + sid[-5:])
     print("Time Zone: Asia/Kolkata")
     print("Current Time: " + datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d %H:%M:%S"))
     print("\nRunning continuous attendance checker (Press Ctrl+C to stop)")
     print("Checking for active attendance sessions every second...")       
-    
+
     await check_and_mark_attendance(sid, email, password, student_id)
 
 if __name__ == "__main__":
@@ -343,5 +339,4 @@ if __name__ == "__main__":
         asyncio.run(main())
     except KeyboardInterrupt:
         print("\n[INFO] Program terminated by user.")
-        
         sys.exit(0)
